@@ -8,32 +8,80 @@
 <style>
     body {
         margin: 0;
-        padding: 0;
+        padding: 20px;
         font-family: Arial, sans-serif;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
         background: #f2f2f2;
         text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 25px;
     }
 
-    h1 {
-        font-size: 2rem;
-        margin-bottom: 30px;
+    h1, h2 {
+        margin: 0;
     }
 
-    .button-container {
-        position: absolute;
-        top: 30%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+    /* ========== Layout Containers ========== */
+    #mood-section,
+    #crush-section,
+    #ask-section {
+        width: 100%;
+        max-width: 450px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
     }
 
+    /* ========== Mood Buttons ========== */
+    #mood-container {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .mood-btn {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        border: 3px solid transparent;
+        cursor: pointer;
+        transition: transform 0.15s ease, border 0.15s ease;
+    }
+
+    .mood-btn.selected {
+        border: 3px solid black;
+        transform: scale(1.2);
+    }
+
+    /* ========== Crush Buttons ========== */
+    #crush-container {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .crush-btn {
+        padding: 10px 20px;
+        font-size: 1rem;
+        border-radius: 12px;
+        background: #ddd;
+        cursor: pointer;
+        border: 2px solid transparent;
+    }
+
+    .crush-btn.selected {
+        border: 2px solid black;
+        background: #bfe0ff;
+    }
+
+    /* ========== Main Ask Button ========== */
     #askButton {
-        font-size: 4rem;
-        padding: 20px 40px;
+        font-size: 3rem;
+        padding: 15px 35px;
         border: none;
         border-radius: 20px;
         background: #4a90e2;
@@ -45,68 +93,55 @@
         background: #357ac8;
     }
 
+    /* ========== Result Box ========== */
     #result {
-        margin-top: 40px;
-        font-size: 5rem;
+        font-size: 4rem;
         font-weight: bold;
-        min-height: 200px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
+        min-height: 120px;
+        margin-top: 20px;
     }
 
-    /* Mood buttons */
-    #mood-container {
-        position: absolute;
-        top: 15%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        display: flex;
-        gap: 15px;
-    }
-
-    .mood-btn {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        border: 3px solid transparent;
-        cursor: pointer;
-        transition: transform 0.15s ease, border 0.15s ease;
-    }
-
-    .mood-btn.selected {
-        border: 3px solid black;
-        transform: scale(1.2);
-    }
 </style>
 </head>
 
 <body>
 
-<h2 style="position:absolute; top:5%;">How do you feel today?</h2>
-
-<!-- Mood buttons -->
-<div id="mood-container">
-    <div class="mood-btn" data-value="1" style="background:#d62727;"></div>
-    <div class="mood-btn" data-value="2" style="background:#ff7f0e;"></div>
-    <div class="mood-btn" data-value="3" style="background:#ffdd00;"></div>
-    <div class="mood-btn" data-value="4" style="background:#a8e458;"></div>
-    <div class="mood-btn" data-value="5" style="background:#34c759;"></div>
+<!-- Mood Section -->
+<div id="mood-section">
+    <h2>How do you feel today?</h2>
+    <div id="mood-container">
+        <div class="mood-btn" data-value="1" style="background:#d62727;"></div>
+        <div class="mood-btn" data-value="2" style="background:#ff7f0e;"></div>
+        <div class="mood-btn" data-value="3" style="background:#ffdd00;"></div>
+        <div class="mood-btn" data-value="4" style="background:#a8e458;"></div>
+        <div class="mood-btn" data-value="5" style="background:#34c759;"></div>
+    </div>
 </div>
 
+<!-- Crush Section -->
+<div id="crush-section">
+    <h2>Is your crush in your first class?</h2>
+    <div id="crush-container">
+        <button class="crush-btn" id="crushYes">Yes</button>
+        <button class="crush-btn" id="crushNo">No</button>
+    </div>
+</div>
 
-<div class="button-container">
+<!-- Ask Button -->
+<div id="ask-section">
     <h1>Should I Get Out of Bed?</h1>
     <button id="askButton">?</button>
 </div>
 
+<!-- Result -->
 <div id="result"></div>
 
-<script>
-    let moodScore = 3; // default medium score
 
-    // Mood button click handling
+<script>
+    let moodScore = 3;
+    let crushInClass = false;
+
+    /* ========= Mood Logic ========= */
     const moodButtons = document.querySelectorAll(".mood-btn");
     moodButtons.forEach(btn => {
         btn.addEventListener("click", () => {
@@ -115,11 +150,31 @@
             moodScore = parseInt(btn.dataset.value);
         });
     });
-    // Select middle mood by default visually
     moodButtons[2].classList.add("selected");
 
+    /* ========= Crush Logic ========= */
+    const crushYes = document.getElementById("crushYes");
+    const crushNo = document.getElementById("crushNo");
 
+    crushYes.addEventListener("click", () => {
+        crushInClass = true;
+        crushYes.classList.add("selected");
+        crushNo.classList.remove("selected");
+    });
+
+    crushNo.addEventListener("click", () => {
+        crushInClass = false;
+        crushNo.classList.add("selected");
+        crushYes.classList.remove("selected");
+    });
+
+    /* ========= Ask Logic ========= */
     document.getElementById("askButton").addEventListener("click", async () => {
+
+        // HIDE QUESTIONS after clicking
+        document.getElementById("mood-section").style.display = "none";
+        document.getElementById("crush-section").style.display = "none";
+
         const resultEl = document.getElementById("result");
         resultEl.textContent = "";
 
@@ -138,34 +193,25 @@
             const code = data.current_weather.weathercode;
 
             const isCloudy = code >= 1 && code <= 3;
-            const isRainy =
-                (code >= 51 && code <= 67) ||
-                (code >= 80 && code <= 82);
-
+            const isRainy = (code >= 51 && code <= 67) || (code >= 80 && code <= 82);
             const isAfternoon = hour >= 12 && hour < 24;
 
-            // --- DECISION LOGIC WITH MOOD ---
-            let weatherDecision = isAfternoon || (temperature > 7 && !isCloudy && !isRainy);
+            let decision = isAfternoon || (temperature > 7 && !isCloudy && !isRainy);
 
-            // Mood modifies decision
-            let shouldGetOutOfBed;
+            if (moodScore >= 4) decision = true;
+            if (moodScore <= 2) decision = false;
 
-            if (moodScore >= 4) {
-                shouldGetOutOfBed = true; // motivated
-            } else if (moodScore <= 2) {
-                shouldGetOutOfBed = false; // not feeling well
-            } else {
-                shouldGetOutOfBed = weatherDecision; // neutral → rely on weather/time
-            }
+            if (crushInClass) decision = true;
 
             resultEl.innerHTML =
-                `<h2>${shouldGetOutOfBed ? "YES" : "NO"}</h2>
-                 <div style="font-size: 2rem;">
+                `<h2>${decision ? "YES" : "NO"}</h2>
+                 <div style="font-size: 1.7rem;">
                      ${parseInt(temperature)}°C
                      ${isCloudy ? "🌤️" : "🌥️"}
                      ${isRainy ? "🌧️" : "🌂"}
                      <br><small>${hour}:00 in Vancouver</small>
                      <br><small>Mood score: ${moodScore}</small>
+                     <br><small>Crush in class: ${crushInClass ? "Yes" : "No"}</small>
                  </div>`;
         } catch (err) {
             console.error(err);
