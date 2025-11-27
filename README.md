@@ -35,26 +35,29 @@ And then formats your decision in a way that's easy to copy and paste and share.
 
 
 🛏️ Should I Get Out of Bed?
-✔️ I got out of bed today (63%)
+✔️ I got out of bed today (82%)
 The weather played a big part in my decision making ... 😊☁️ 6°C
-Today I feel like � and my huzz is in my first class today 💘
-So you can find me in class at DSCI 220
+Today I feel like 😊 and my huzz is in my first class today 💘
+This explains my attendance choices at DSCI 100 today.
 
 Score breakdown:
+• +100 — 100-level class
+• +35 — Data science class, the best!
 • +100 — afternoon vibes
 • -10 — cloudy
 • +30 — good mood
-• +200 — crush in class 😍
+• +200 — huzz in class 😍
 
-Should you get out of bed today? Find out at https://ellailan.github.io/rise-and-decide/
+Should you get out of bed today? Find out at https://github.com/ellailan/rise-and-decide
+
 
 
 
 With Rise & Decide, we improve:
 
 - Student attendance: **❌**
-- Student sleep: **✔️**
-- Student delusion: **✔️✔️✔️**
+- Student sleep schedules: **✔️**
+- and most importantly, student delusion: **✔️✔️✔️**
 
 
 *Thank you. We accept payment in emotional support and 8am class exemptions.*
