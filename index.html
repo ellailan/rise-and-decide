@@ -425,10 +425,15 @@
     </div>
 
     <script>
-        let moodScore = 3;
+        /* ============
+           STATE
+        ============ */
+        let moodScore = 3;        // Default neutral
         let crushInClass = false;
-
-        // Mood selection
+    
+        /* ============
+           MOOD PICKER
+        ============ */
         const moodEmojis = document.querySelectorAll(".mood-emoji");
         moodEmojis.forEach(emoji => {
             emoji.addEventListener("click", () => {
@@ -437,112 +442,208 @@
                 moodScore = parseInt(emoji.dataset.value);
             });
         });
-        moodEmojis[2].classList.add("selected");
-
-        // Crush selection
+        moodEmojis[2].classList.add("selected"); // Preselect mid mood
+    
+        /* ============
+           CRUSH PICKER
+        ============ */
         const crushYes = document.getElementById("crushYes");
         const crushNo = document.getElementById("crushNo");
-
+    
         crushYes.addEventListener("click", () => {
             crushInClass = true;
             crushYes.classList.add("selected");
             crushNo.classList.remove("selected");
         });
-
+    
         crushNo.addEventListener("click", () => {
             crushInClass = false;
             crushNo.classList.add("selected");
             crushYes.classList.remove("selected");
         });
-
-        // Calculate and show result
+    
+        /* ============
+           MAIN CALCULATION
+        ============ */
         async function calculate() {
             const courseCodeEl = document.getElementById("courseCode");
             const courseNumberEl = document.getElementById("courseNumber");
             const courseErrorEl = document.getElementById("courseError");
             courseErrorEl.textContent = "";
-
+    
+            // Validate course code
             const code = courseCodeEl.value.trim().toUpperCase();
             const number = courseNumberEl.value.trim();
-
+    
             if (!/^[A-Z]{4}$/.test(code) || !/^[0-9]{3}$/.test(number)) {
-                courseErrorEl.textContent = "Please enter valid course code (4 letters) and number (3 digits)";
+                courseErrorEl.textContent =
+                    "Please enter valid course code (4 letters) and number (3 digits)";
                 return;
             }
-
-            const courseCode = code + number;
+    
             const subject = code;
             const level = parseInt(number);
-
-            let classDecisionScore = 0;
-            if (level >= 100 && level < 200) classDecisionScore += 100;
-            if (subject === "POLI") classDecisionScore -= 50;
-            if (subject === "CPSC" || subject === "MATH") classDecisionScore += 100;
-
+    
+            /* ============
+               SCORING SETUP
+               We build MAX and MIN possible score so we can normalize
+               everything to 0–100%
+            ============ */
+    
+            let score = 0;
+            let maxScore = 0;
+            let minScore = 0;
+    
+            /* ============
+               CLASS SCORE
+            ============ */
+    
+            // Max/min contributions to class score
+            const CLASS_MAX = 200; // 100 (100-level) + 100 (CPSC/MATH)
+            const CLASS_MIN = -50; // POLI penalty
+    
+            // Add to global max/min
+            maxScore += CLASS_MAX;
+            minScore += CLASS_MIN;
+    
+            // Actual class score
+            if (level >= 100 && level < 200) score += 100;
+            if (subject === "CPSC" || subject === "MATH") score += 100;
+            if (subject === "POLI") score -= 50;
+    
             try {
+                /* ============
+                   TIME
+                ============ */
                 const now = new Date();
-                const vancouverTime = now.toLocaleString("en-US", { timeZone: "America/Vancouver" });
-                const hour = new Date(vancouverTime).getHours();
-                const minute = new Date(vancouverTime).getMinutes();
-                const isAfternoon = hour >= 12 && hour < 24;
-
-                const url = "https://api.open-meteo.com/v1/forecast?latitude=49.2497&longitude=-123.1193&current_weather=true";
-                const response = await fetch(url);
+                const vancouverTime = now.toLocaleString("en-US", {
+                    timeZone: "America/Vancouver"
+                });
+                const local = new Date(vancouverTime);
+    
+                const hour = local.getHours();
+                const minute = local.getMinutes();
+                const isAfternoon = hour >= 12;
+    
+                /* ============
+                   WEATHER API
+                ============ */
+                const response = await fetch(
+                    "https://api.open-meteo.com/v1/forecast?latitude=49.2497&longitude=-123.1193&current_weather=true"
+                );
                 const data = await response.json();
-
-                const temperature = data.current_weather.temperature;
-                const code = data.current_weather.weathercode;
-
-                const isCloudy = code >= 1 && code <= 3;
-                const isRainy = (code >= 51 && code <= 67) || (code >= 80 && code <= 82);
-
-                let weatherScore = 0;
-                if (isAfternoon) weatherScore += 100;
-                if (temperature > 7 && !isCloudy && !isRainy) weatherScore += 50;
-                if (isRainy) weatherScore -= 40;
-                if (isCloudy) weatherScore -= 10;
-
-                if (moodScore >= 4) weatherScore += 30;
-                if (moodScore <= 2) weatherScore -= 30;
-                if (crushInClass) weatherScore += 200;
-
-                const totalScore = weatherScore + classDecisionScore;
-                const shouldGetOutOfBed = totalScore >= 50;
-
-                // Update result page
-                document.getElementById("decision").textContent = shouldGetOutOfBed ? "GET OUT OF BED" : "STAY IN BED";
-
-                let reasonText = "";
-                if (shouldGetOutOfBed) {
-                    reasonText = `it's ${temperature > 15 ? "nice and hot" : "decent"} outside!<br>`;
-                    reasonText += isAfternoon ? "perfect afternoon vibes...<br>" : "and still bright and early...<br>";
-                    reasonText += crushInClass ? "seems like the perfect day to run into<br>your crush" : "great day to be productive!";
+    
+                const temp = data.current_weather.temperature;
+                const wcode = data.current_weather.weathercode;
+    
+                const isCloudy = wcode >= 1 && wcode <= 3;
+                const isRainy =
+                    (wcode >= 51 && wcode <= 67) ||
+                    (wcode >= 80 && wcode <= 82);
+    
+                /* ============
+                   WEATHER SCORE
+                ============ */
+    
+                // Max possible: nice weather + afternoon + good mood + crush
+                const WEATHER_MAX = 100 + 50 + 30 + 200;
+                const WEATHER_MIN = -40 - 10 - 30;
+    
+                maxScore += WEATHER_MAX;
+                minScore += WEATHER_MIN;
+    
+                // Afternoon boost
+                if (isAfternoon) score += 100;
+    
+                // Nice weather
+                if (temp > 7 && !isCloudy && !isRainy) score += 50;
+    
+                // Rain/cloud penalties
+                if (isRainy) score -= 40;
+                if (isCloudy) score -= 10;
+    
+                // Mood effect
+                if (moodScore >= 4) score += 30;
+                if (moodScore <= 2) score -= 30;
+    
+                // Crush effect
+                if (crushInClass) score += 200;
+    
+                /* ============
+                   NORMALIZE TO %
+                ============ */
+    
+                const percent =
+                    Math.round(((score - minScore) / (maxScore - minScore)) * 100);
+    
+                const finalPercent = Math.min(100, Math.max(0, percent));
+                const shouldGetOut = finalPercent >= 50;
+    
+                /* ============
+                   DISPLAY RESULT
+                ============ */
+                document.getElementById("decision").textContent =
+                    shouldGetOut ? "GET OUT OF BED" : "STAY IN BED";
+    
+                let reason = `Score: ${finalPercent}%<br>`;
+    
+                if (shouldGetOut) {
+                    reason += temp > 15
+                        ? "the weather is actually kinda nice<br>"
+                        : "conditions aren't terrible tbh<br>";
+                    reason += isAfternoon
+                        ? "it's a comfy afternoon...<br>"
+                        : "the day's still young...<br>";
+                    reason += crushInClass
+                        ? "also your crush is literally there"
+                        : "go be productive bae";
                 } else {
-                    reasonText = `it's ${temperature < 5 ? "freezing" : "not great"} outside<br>`;
-                    reasonText += isRainy ? "and it's raining...<br>" : "and kinda gloomy...<br>";
-                    reasonText += "maybe stay cozy in bed today";
+                    reason += temp < 5
+                        ? "it's freezing outside<br>"
+                        : "the weather is meh<br>";
+                    reason += isRainy
+                        ? "and it's raining...<br>"
+                        : "and it's gloomy...<br>";
+                    reason += "warm bed wins today";
                 }
-                document.getElementById("reason").innerHTML = reasonText;
-
-                const weatherEmoji = isRainy ? "🌧️" : (isCloudy ? "☁️" : "☀️");
-                const tempEmoji = temperature > 20 ? "😰" : (temperature < 5 ? "🥶" : "😊");
-                document.getElementById("weatherEmoji").textContent = tempEmoji + weatherEmoji;
-                document.getElementById("temperature").textContent = `${Math.round(temperature)}°C and ${isRainy ? "rainy" : (isCloudy ? "cloudy" : "sunny")}`;
-                document.getElementById("precipitation").textContent = isRainy ? "5mm+ precip" : "0mm precip";
-                document.getElementById("time").textContent = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} ${hour < 12 ? 'am' : 'pm'}`;
-
-                // Show and scroll to result
+    
+                document.getElementById("reason").innerHTML = reason;
+    
+                const weatherEmoji =
+                    isRainy ? "🌧️" : isCloudy ? "☁️" : "☀️";
+                const tempEmoji =
+                    temp > 20 ? "😰" : temp < 5 ? "🥶" : "😊";
+    
+                document.getElementById("weatherEmoji").textContent =
+                    tempEmoji + weatherEmoji;
+    
+                document.getElementById("temperature").textContent =
+                    `${Math.round(temp)}°C and ${
+                        isRainy ? "rainy" : isCloudy ? "cloudy" : "sunny"
+                    }`;
+    
+                document.getElementById("precipitation").textContent =
+                    isRainy ? "5mm+ precip" : "0mm precip";
+    
+                document.getElementById("time").textContent =
+                    `${hour.toString().padStart(2, "0")}:${minute
+                        .toString()
+                        .padStart(2, "0")} ${hour < 12 ? "am" : "pm"}`;
+    
+                // Show result section
                 document.getElementById("resultPage").style.display = "flex";
                 setTimeout(() => {
-                    document.getElementById("resultPage").scrollIntoView({ behavior: 'smooth' });
+                    document
+                        .getElementById("resultPage")
+                        .scrollIntoView({ behavior: "smooth" });
                 }, 100);
-
             } catch (err) {
                 console.error(err);
                 alert("Couldn't fetch weather data. Please try again!");
             }
         }
     </script>
+    
 
 </body>
 
