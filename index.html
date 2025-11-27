@@ -25,42 +25,75 @@
     }
 
     .button-container {
-    position: absolute;
-    top: 20%;          /* vertical center */
-    left: 50%;         /* horizontal center */
-    transform: translate(-50%, -50%);
-}
+        position: absolute;
+        top: 30%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
 
-#askButton {
-    font-size: 4rem;
-    padding: 20px 40px;
-    border: none;
-    border-radius: 20px;
-    background: #4a90e2;
-    color: white;
-    cursor: pointer;
-}
+    #askButton {
+        font-size: 4rem;
+        padding: 20px 40px;
+        border: none;
+        border-radius: 20px;
+        background: #4a90e2;
+        color: white;
+        cursor: pointer;
+    }
 
-#askButton:active {
-    background: #357ac8;
-}
-
+    #askButton:active {
+        background: #357ac8;
+    }
 
     #result {
-    margin-top: 40px;
-    font-size: 5rem;
-    font-weight: bold;
-    min-height: 200px; /* keeps layout stable */
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-}
+        margin-top: 40px;
+        font-size: 5rem;
+        font-weight: bold;
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+    }
 
+    /* Mood buttons */
+    #mood-container {
+        position: absolute;
+        top: 15%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        gap: 15px;
+    }
+
+    .mood-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 3px solid transparent;
+        cursor: pointer;
+        transition: transform 0.15s ease, border 0.15s ease;
+    }
+
+    .mood-btn.selected {
+        border: 3px solid black;
+        transform: scale(1.2);
+    }
 </style>
 </head>
 
 <body>
+
+<h2 style="position:absolute; top:5%;">How do you feel today?</h2>
+
+<!-- Mood buttons -->
+<div id="mood-container">
+    <div class="mood-btn" data-value="1" style="background:#d62727;"></div>
+    <div class="mood-btn" data-value="2" style="background:#ff7f0e;"></div>
+    <div class="mood-btn" data-value="3" style="background:#ffdd00;"></div>
+    <div class="mood-btn" data-value="4" style="background:#a8e458;"></div>
+    <div class="mood-btn" data-value="5" style="background:#34c759;"></div>
+</div>
 
 
 <div class="button-container">
@@ -68,23 +101,36 @@
     <button id="askButton">?</button>
 </div>
 
-
 <div id="result"></div>
 
 <script>
+    let moodScore = 3; // default medium score
+
+    // Mood button click handling
+    const moodButtons = document.querySelectorAll(".mood-btn");
+    moodButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            moodButtons.forEach(b => b.classList.remove("selected"));
+            btn.classList.add("selected");
+            moodScore = parseInt(btn.dataset.value);
+        });
+    });
+    // Select middle mood by default visually
+    moodButtons[2].classList.add("selected");
+
+
     document.getElementById("askButton").addEventListener("click", async () => {
         const resultEl = document.getElementById("result");
-        resultEl.textContent = ""; 
+        resultEl.textContent = "";
 
         try {
-            // Get Vancouver local time
+            // Vancouver local time
             const now = new Date();
             const vancouverTime = now.toLocaleString("en-US", { timeZone: "America/Vancouver" });
             const hour = new Date(vancouverTime).getHours();
 
-            // Open-Meteo API for Vancouver
+            // Weather API
             const url = "https://api.open-meteo.com/v1/forecast?latitude=49.2497&longitude=-123.1193&current_weather=true&hourly=cloudcover,precipitation";
-
             const response = await fetch(url);
             const data = await response.json();
 
@@ -96,11 +142,21 @@
                 (code >= 51 && code <= 67) ||
                 (code >= 80 && code <= 82);
 
-            // NEW: If it's afternoon or evening, automatically say yes
             const isAfternoon = hour >= 12 && hour < 24;
 
-            const shouldGetOutOfBed =
-                isAfternoon || (parseInt(temperature) > 7 && !isCloudy && !isRainy);
+            // --- DECISION LOGIC WITH MOOD ---
+            let weatherDecision = isAfternoon || (temperature > 7 && !isCloudy && !isRainy);
+
+            // Mood modifies decision
+            let shouldGetOutOfBed;
+
+            if (moodScore >= 4) {
+                shouldGetOutOfBed = true; // motivated
+            } else if (moodScore <= 2) {
+                shouldGetOutOfBed = false; // not feeling well
+            } else {
+                shouldGetOutOfBed = weatherDecision; // neutral → rely on weather/time
+            }
 
             resultEl.innerHTML =
                 `<h2>${shouldGetOutOfBed ? "YES" : "NO"}</h2>
@@ -109,14 +165,13 @@
                      ${isCloudy ? "🌤️" : "🌥️"}
                      ${isRainy ? "🌧️" : "🌂"}
                      <br><small>${hour}:00 in Vancouver</small>
+                     <br><small>Mood score: ${moodScore}</small>
                  </div>`;
         } catch (err) {
             console.error(err);
         }
     });
 </script>
-
-    
 
 </body>
 </html>
