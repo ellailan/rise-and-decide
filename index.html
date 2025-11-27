@@ -449,7 +449,18 @@
 
             if (level >= 100 && level < 200) { score += 100; debug.push("+100 — 100-level class"); }
             if (subject === "CPSC" || subject === "MATH") { score += 100; debug.push("+100 — CPSC/MATH class"); }
-            if (subject === "POLI") { score -= 50; debug.push("-50 — POLI class"); }
+            if (subject === "POLI") { score -= 50; debug.push("-50 — POLI class, need I say more?"); }
+            if (subject === "BIOL") { score += 50; debug.push("+50 — Bio lab energy boost"); }
+            if (subject === "CHEM") { score -= 20; debug.push("-20 — Chem lecture snooze potential"); }
+            if (subject === "PHYS") { score -= 10; debug.push("-10 — Physics brain workout"); }
+            if (subject === "ENGL") { score += 20; debug.push("+20 — English class, chill vibes"); }
+            if (subject === "ECON") { score += 30; debug.push("+30 — Econ class, money brain engaged"); }
+            if (subject === "PSYC") { score += 40; debug.push("+40 — Psychology class, fun mind games"); }
+            if (subject === "STAT") { score += 25; debug.push("+25 — 95% confident a Stats class will put you in a better mood!"); }
+            if (subject === "KIN") { score += 60; debug.push("+60 — Kinesiology hype"); }
+            if (subject === "PHIL") { score -= 10; debug.push("-10 — Philosophy existential ponderings"); }
+            if (subject === "DSCI") { score += 35; debug.push("+35 — Data science class, the best!"); }
+
 
             try {
                 // TIME
