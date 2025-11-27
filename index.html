@@ -1,1 +1,122 @@
-<h1>Hello World</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Should I Get Out of Bed?</title>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: #f2f2f2;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 2rem;
+        margin-bottom: 30px;
+    }
+
+    .button-container {
+    position: absolute;
+    top: 20%;          /* vertical center */
+    left: 50%;         /* horizontal center */
+    transform: translate(-50%, -50%);
+}
+
+#askButton {
+    font-size: 4rem;
+    padding: 20px 40px;
+    border: none;
+    border-radius: 20px;
+    background: #4a90e2;
+    color: white;
+    cursor: pointer;
+}
+
+#askButton:active {
+    background: #357ac8;
+}
+
+
+    #result {
+    margin-top: 40px;
+    font-size: 5rem;
+    font-weight: bold;
+    min-height: 200px; /* keeps layout stable */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+</style>
+</head>
+
+<body>
+
+
+<div class="button-container">
+    <h1>Should I Get Out of Bed?</h1>
+    <button id="askButton">?</button>
+</div>
+
+
+<div id="result"></div>
+
+<script>
+    document.getElementById("askButton").addEventListener("click", async () => {
+        const resultEl = document.getElementById("result");
+        resultEl.textContent = ""; 
+
+        try {
+            // Get Vancouver local time
+            const now = new Date();
+            const vancouverTime = now.toLocaleString("en-US", { timeZone: "America/Vancouver" });
+            const hour = new Date(vancouverTime).getHours();
+
+            // Open-Meteo API for Vancouver
+            const url = "https://api.open-meteo.com/v1/forecast?latitude=49.2497&longitude=-123.1193&current_weather=true&hourly=cloudcover,precipitation";
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            const temperature = data.current_weather.temperature;
+            const code = data.current_weather.weathercode;
+
+            const isCloudy = code >= 1 && code <= 3;
+            const isRainy =
+                (code >= 51 && code <= 67) ||
+                (code >= 80 && code <= 82);
+
+            // NEW: If it's afternoon or evening, automatically say yes
+            const isAfternoon = hour >= 12 && hour < 24;
+
+            const shouldGetOutOfBed =
+                isAfternoon || (parseInt(temperature) > 7 && !isCloudy && !isRainy);
+
+            resultEl.innerHTML =
+                `<h2>${shouldGetOutOfBed ? "YES" : "NO"}</h2>
+                 <div style="font-size: 2rem;">
+                     ${parseInt(temperature)}°C
+                     ${isCloudy ? "🌤️" : "🌥️"}
+                     ${isRainy ? "🌧️" : "🌂"}
+                     <br><small>${hour}:00 in Vancouver</small>
+                 </div>`;
+        } catch (err) {
+            console.error(err);
+        }
+    });
+</script>
+
+    
+
+</body>
+</html>
