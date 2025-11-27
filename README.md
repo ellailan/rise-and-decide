@@ -46,7 +46,7 @@ Score breakdown:
 • +30 — good mood
 • +200 — crush in class 😍
 
-Should you get out of bed today? Find out at ellailan.github.io/vibecodeathon/
+Should you get out of bed today? Find out at https://ellailan.github.io/rise-and-decide/
 
 
 
