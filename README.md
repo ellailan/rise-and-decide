@@ -1,6 +1,6 @@
 
 
-Your perfectly baggy jeans, covered in mud at the hems. A pounding headache in a useless three-hour lab. 
+Your perfectly baggy jeans, covered in mud at the hems. A pounding headache in a useless three-hour lab. Stuck in the Blue Chip line for an hour, and your iced latte sucks. You wish, more than anything, that you had just stayed home. 
 
 Do you ever struggle to get out of bed in the morning, because really, what's the point? Commuting is so hard, but attendance is so important for academic weaponry...
 
