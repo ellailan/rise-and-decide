@@ -48,7 +48,7 @@ Score breakdown:
 • +30 — good mood
 • +200 — huzz in class 😍
 
-Should you get out of bed today? Find out at https://github.com/ellailan/rise-and-decide
+Should you get out of bed today? Find out at [https://github.com/ellailan/rise-and-decide](https://ellailan.github.io/rise-and-decide/)
 
 
 
